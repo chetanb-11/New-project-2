@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #17211b;
+  background: #f5f7f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f5f7f2;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background: #1c1917; /* stone-900 */
+  color: #e7e5e4; /* stone-200 */
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}

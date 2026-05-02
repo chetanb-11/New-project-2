@@ -1,0 +1,22 @@
+{
+  "name": "@focus-flow/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "check": "node --check src/index.js && node --check src/app.js && node --check src/config/env.js && node --check src/db/mongoose.js && node --check src/models/task.model.js && node --check src/routes/task.routes.js && node --check src/routes/prioritize.routes.js && node --check src/schemas/task.schema.js && node --check src/services/gemini.service.js && node --check src/services/priority-response.service.js && node --check src/utils/flow.js && node --check scripts/verify-prioritize.js",
+    "verify:prioritize": "node scripts/verify-prioritize.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.1",
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.1.0",
+    "mongoose": "^8.9.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {}
+}
