@@ -66,6 +66,7 @@ Fields:
 - Complete: `POST /prioritize` is implemented in `server/src/routes/prioritize.routes.js`.
 - Complete: API request schemas and environment validation use Zod.
 - Complete: Gemini 1.5 Flash prioritization is implemented with local Flow fallback behavior.
+- Complete: User Model, Authentication routes (`POST /auth/register`, `POST /auth/login`), and JWT based authorization using `@fastify/jwt` and `bcryptjs`.
 
 ## Frontend Phase
 
@@ -77,6 +78,7 @@ Fields:
 - Complete: `client/vite.config.js` enables `@vitejs/plugin-react`; keep this file in place to prevent blank-page runtime crashes from JSX compilation.
 - Complete: Real-time active task tracking implemented in `TaskCard.jsx` using absolute `Date.now()` logic to prevent background browser tab throttling.
 - Complete: Dark Mode toggle implemented via `ThemeToggle.jsx` and Tailwind CSS `dark:` classes.
+- Complete: JWT authentication and protected routes with a "Guest Mode" fallback logic using `react-router-dom`. Unauthenticated users can use the app locally without database persistence.
 - Verify persisted tasks by running the server, running the client, creating a task, refreshing the browser, and confirming it remains in the list.
 
 ## Current Project Structure

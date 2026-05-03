@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+  import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -17,7 +17,8 @@ if (existsSync(serverEnv)) {
 const envSchema = z.object({
   MONGODB_URI: z.string().url().or(z.string().startsWith('mongodb://')).or(z.string().startsWith('mongodb+srv://')),
   GEMINI_API_KEY: z.string().min(1),
-  PORT: z.coerce.number().int().positive().default(4000)
+  PORT: z.coerce.number().int().positive().default(4000),
+  JWT_SECRET: z.string().min(1).default('default_development_secret_do_not_use_in_prod')
 });
 
 export const env = envSchema.parse(process.env);

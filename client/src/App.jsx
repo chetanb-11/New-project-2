@@ -1,29 +1,42 @@
 import { useState, useEffect } from 'react';
-import { Activity, RefreshCw } from 'lucide-react';
+import { Routes, Route, useNavigate, Link } from 'react-router-dom';
+import { Activity, RefreshCw, LogOut, LogIn } from 'lucide-react';
 import { EnergySlider } from './components/EnergySlider.jsx';
 import { TaskBoard } from './components/TaskBoard.jsx';
 import { CreateTaskForm } from './components/CreateTaskForm.jsx';
 import { ThemeToggle } from './components/ThemeToggle.jsx';
+import { AuthForm } from './components/AuthForm.jsx';
 import { fetchTasks, createTask, deleteTask, prioritizeTasks, updateTask } from './api/tasks.js';
 import { sortTasksByFlow } from './utils/flow.js';
+import { getToken, removeToken } from './api/auth.js';
 
-function App() {
+function Dashboard({ isAuthenticated, onLogout }) {
   const [tasks, setTasks] = useState([]);
   const [energy, setEnergy] = useState(5);
-  const [loading, setLoading] = useState(true);
-  const [notice, setNotice] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState(
+    isAuthenticated ? null : 'You are in Guest Mode. Tasks are only saved locally. Log in to save to the database.'
+  );
 
   useEffect(() => {
-    loadTasks();
-  }, []);
+    if (isAuthenticated) {
+      loadTasks();
+    } else {
+      setNotice('You are in Guest Mode. Tasks are only saved locally. Log in to save to the database.');
+    }
+  }, [isAuthenticated]);
 
   const loadTasks = async () => {
     try {
       setLoading(true);
+      setNotice(null);
       const data = await fetchTasks();
       setTasks(data);
     } catch (err) {
       console.error('Failed to load tasks:', err);
+      if (err.message.includes('401')) {
+        onLogout();
+      }
     } finally {
       setLoading(false);
     }
@@ -37,10 +50,16 @@ function App() {
     if (tasks.length === 0) return;
 
     try {
-      setLoading(true);
-      const res = await prioritizeTasks(tasks, energy);
-      setTasks(res.orderedTasks);
-      setNotice(res.geminiFailed ? 'Gemini prioritization was unavailable, so the local Flow score order was used.' : null);
+      if (isAuthenticated) {
+        setLoading(true);
+        const res = await prioritizeTasks(tasks, energy);
+        setTasks(res.orderedTasks);
+        setNotice(res.geminiFailed ? 'Gemini prioritization was unavailable, so the local Flow score order was used.' : null);
+      } else {
+        // Local only prioritization
+        setTasks(sortTasksByFlow(tasks, energy));
+        setNotice('Prioritized locally (Guest Mode).');
+      }
     } catch (err) {
       console.error('Failed to prioritize:', err);
       setNotice('Could not refine priority. Using local Flow scores.');
@@ -51,11 +70,14 @@ function App() {
 
   const handleCreateTask = async (taskData) => {
     try {
-      const created = await createTask(taskData);
-      setTasks((prev) => [...prev, created]);
+      if (isAuthenticated) {
+        const created = await createTask(taskData);
+        setTasks((prev) => [...prev, created]);
+      } else {
+        throw new Error('Guest mode');
+      }
     } catch (err) {
-      console.error('Failed to create task:', err);
-      setNotice('Failed to save task to database. It only exists locally.');
+      if (isAuthenticated) console.error('Failed to create task:', err);
       const localTask = {
         _id: `temp-${Date.now()}`,
         ...taskData,
@@ -67,7 +89,9 @@ function App() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      await deleteTask(taskId);
+      if (isAuthenticated && !taskId.toString().startsWith('temp-')) {
+        await deleteTask(taskId);
+      }
       setTasks((prev) => prev.filter((t) => (t.id ?? t._id) !== taskId));
     } catch (err) {
       console.error('Failed to delete task:', err);
@@ -98,7 +122,7 @@ function App() {
     );
 
     try {
-      if (!taskId.toString().startsWith('temp-')) {
+      if (isAuthenticated && !taskId.toString().startsWith('temp-')) {
         await updateTask(taskId, updatedPayload);
       }
     } catch (err) {
@@ -126,6 +150,16 @@ function App() {
           <div className="flex items-center gap-4">
             <EnergySlider value={energy} onChange={updateEnergy} />
             <ThemeToggle />
+            {isAuthenticated ? (
+              <button onClick={onLogout} title="Log Out" className="p-2 rounded-md hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors">
+                <LogOut className="h-5 w-5 text-stone-600 dark:text-stone-400" />
+              </button>
+            ) : (
+              <Link to="/auth" title="Log In" className="p-2 rounded-md hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center gap-2">
+                <LogIn className="h-5 w-5 text-stone-600 dark:text-stone-400" />
+                <span className="text-sm font-medium hidden sm:inline">Log In</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -156,6 +190,27 @@ function App() {
         <TaskBoard tasks={visibleTasks} energy={energy} onDelete={handleDeleteTask} onUpdateStatus={handleUpdateTaskStatus} />
       </section>
     </main>
+  );
+}
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
+  const navigate = useNavigate();
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    setIsAuthenticated(false);
+  };
+
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard isAuthenticated={isAuthenticated} onLogout={handleLogout} />} />
+      <Route path="/auth" element={<AuthForm onAuthSuccess={handleAuthSuccess} />} />
+    </Routes>
   );
 }
 

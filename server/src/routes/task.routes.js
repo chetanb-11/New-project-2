@@ -5,13 +5,13 @@ const parseBody = (schema, request) => schema.parse(request.body);
 const parseParams = (schema, request) => schema.parse(request.params);
 
 export const taskRoutes = async (app) => {
-  app.get('/tasks', async () => {
-    return Task.find().sort({ createdAt: -1 });
+  app.get('/tasks', { onRequest: [app.authenticate] }, async (request) => {
+    return Task.find({ owner: request.user.id }).sort({ createdAt: -1 });
   });
 
-  app.get('/tasks/:id', async (request, reply) => {
+  app.get('/tasks/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = parseParams(taskIdParamsSchema, request);
-    const task = await Task.findById(id);
+    const task = await Task.findOne({ _id: id, owner: request.user.id });
 
     if (!task) {
       return reply.code(404).send({
@@ -22,17 +22,18 @@ export const taskRoutes = async (app) => {
     return task;
   });
 
-  app.post('/tasks', async (request, reply) => {
+  app.post('/tasks', { onRequest: [app.authenticate] }, async (request, reply) => {
     const payload = parseBody(createTaskSchema, request);
+    payload.owner = request.user.id;
     const task = await Task.create(payload);
     return reply.code(201).send(task);
   });
 
-  app.put('/tasks/:id', async (request, reply) => {
+  app.put('/tasks/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = parseParams(taskIdParamsSchema, request);
     const payload = parseBody(updateTaskSchema, request);
     
-    const task = await Task.findById(id);
+    const task = await Task.findOne({ _id: id, owner: request.user.id });
     if (!task) {
       return reply.code(404).send({
         message: 'Task not found'
@@ -57,9 +58,9 @@ export const taskRoutes = async (app) => {
     return updatedTask;
   });
 
-  app.delete('/tasks/:id', async (request, reply) => {
+  app.delete('/tasks/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = parseParams(taskIdParamsSchema, request);
-    const task = await Task.findByIdAndDelete(id);
+    const task = await Task.findOneAndDelete({ _id: id, owner: request.user.id });
 
     if (!task) {
       return reply.code(404).send({
