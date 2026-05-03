@@ -49,7 +49,7 @@ export const prioritizeTasks = (tasks, currentEnergy) => {
 
 export const updateTask = (id, payload) => {
   return requestJson(`/tasks/${id}`, {
-    method: 'PATCH',
+    method: 'PUT',
     body: JSON.stringify(payload)
   });
 };

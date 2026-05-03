@@ -77,13 +77,29 @@ function App() {
 
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     const originalTasks = [...tasks];
+    
+    let updatedPayload = { status: newStatus };
+    const task = tasks.find(t => (t.id ?? t._id) === taskId);
+    
+    if (task) {
+      if (task.status === 'In-Progress' && newStatus !== 'In-Progress') {
+        if (task.lastStartedAt) {
+          const elapsedTime = (Date.now() - new Date(task.lastStartedAt).getTime()) / 60000;
+          updatedPayload.actualTimeSpent = (task.actualTimeSpent || 0) + elapsedTime;
+        }
+        updatedPayload.lastStartedAt = null;
+      } else if (task.status !== 'In-Progress' && newStatus === 'In-Progress') {
+        updatedPayload.lastStartedAt = new Date().toISOString();
+      }
+    }
+
     setTasks((prev) =>
-      prev.map((t) => ((t.id ?? t._id) === taskId ? { ...t, status: newStatus } : t))
+      prev.map((t) => ((t.id ?? t._id) === taskId ? { ...t, ...updatedPayload } : t))
     );
 
     try {
       if (!taskId.toString().startsWith('temp-')) {
-        await updateTask(taskId, { status: newStatus });
+        await updateTask(taskId, updatedPayload);
       }
     } catch (err) {
       console.error('Failed to update task status:', err);

@@ -19,34 +19,34 @@ const statusTone = {
 const getTaskId = (task) => task.id ?? task._id;
 
 const formatTime = (seconds) => {
-  const h = Math.floor(seconds / 3600);
+  const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
   const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
   const s = (seconds % 60).toString().padStart(2, '0');
-  if (h > 0) {
-    return `${h}:${m}:${s}`;
-  }
-  return `${m}:${s}`;
+  return `${h}:${m}:${s}`;
 };
 
 export const TaskCard = ({ task, energy, onDelete, onUpdateStatus, index }) => {
   const [elapsed, setElapsed] = useState(0);
-  const startTimeRef = useRef(null);
 
   useEffect(() => {
     let intervalId;
+    const pastSeconds = Math.floor((task.actualTimeSpent || 0) * 60);
+
     if (task.status === 'In-Progress') {
-      if (!startTimeRef.current) {
-        startTimeRef.current = Date.now();
-      }
+      const sessionStart = task.lastStartedAt ? new Date(task.lastStartedAt).getTime() : Date.now();
+      setElapsed(pastSeconds + Math.floor((Date.now() - sessionStart) / 1000));
+
       intervalId = setInterval(() => {
-        setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+        setElapsed(pastSeconds + Math.floor((Date.now() - sessionStart) / 1000));
       }, 1000);
+    } else if (task.status === 'Completed') {
+      setElapsed(pastSeconds);
     } else {
-      startTimeRef.current = null;
-      setElapsed(0);
+      setElapsed(pastSeconds);
     }
+    
     return () => clearInterval(intervalId);
-  }, [task.status]);
+  }, [task.status, task.lastStartedAt, task.actualTimeSpent]);
 
   return (
     <motion.article
@@ -71,8 +71,8 @@ export const TaskCard = ({ task, energy, onDelete, onUpdateStatus, index }) => {
           ) : null}
         </div>
         <div className="flex items-center gap-2">
-          {task.status === 'In-Progress' && (
-            <span className="font-mono text-sm font-semibold text-amber-600 dark:text-amber-400">
+          {(task.status === 'In-Progress' || task.status === 'Completed') && (
+            <span className={`font-mono text-sm font-semibold ${task.status === 'Completed' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {formatTime(elapsed)}
             </span>
           )}

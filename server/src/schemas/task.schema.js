@@ -9,7 +9,9 @@ export const createTaskSchema = z.object({
   difficulty: z.number().int().min(1).max(5),
   estimatedTime: z.number().int().min(0),
   category: taskCategorySchema,
-  status: taskStatusSchema.optional().default('Backlog')
+  status: taskStatusSchema.optional().default('Backlog'),
+  actualTimeSpent: z.number().min(0).optional().default(0),
+  lastStartedAt: z.coerce.date().nullable().optional().default(null)
 });
 
 export const updateTaskSchema = createTaskSchema.partial().refine((value) => Object.keys(value).length > 0, {
@@ -28,7 +30,9 @@ export const prioritizeTaskSchema = z.object({
   estimatedTime: z.number().int().min(0),
   category: taskCategorySchema,
   status: taskStatusSchema,
-  createdAt: z.coerce.date().optional()
+  createdAt: z.coerce.date().optional(),
+  actualTimeSpent: z.number().min(0).optional(),
+  lastStartedAt: z.coerce.date().nullable().optional()
 });
 
 export const prioritizeSchema = z.object({
