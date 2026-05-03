@@ -4,7 +4,7 @@ import { EnergySlider } from './components/EnergySlider.jsx';
 import { TaskBoard } from './components/TaskBoard.jsx';
 import { CreateTaskForm } from './components/CreateTaskForm.jsx';
 import { ThemeToggle } from './components/ThemeToggle.jsx';
-import { fetchTasks, createTask, deleteTask, prioritizeTasks } from './api/tasks.js';
+import { fetchTasks, createTask, deleteTask, prioritizeTasks, updateTask } from './api/tasks.js';
 import { sortTasksByFlow } from './utils/flow.js';
 
 function App() {
@@ -75,6 +75,23 @@ function App() {
     }
   };
 
+  const handleUpdateTaskStatus = async (taskId, newStatus) => {
+    const originalTasks = [...tasks];
+    setTasks((prev) =>
+      prev.map((t) => ((t.id ?? t._id) === taskId ? { ...t, status: newStatus } : t))
+    );
+
+    try {
+      if (!taskId.toString().startsWith('temp-')) {
+        await updateTask(taskId, { status: newStatus });
+      }
+    } catch (err) {
+      console.error('Failed to update task status:', err);
+      setNotice('Failed to update task status on server.');
+      setTasks(originalTasks);
+    }
+  };
+
   const visibleTasks = sortTasksByFlow(tasks, energy);
 
   return (
@@ -120,7 +137,7 @@ function App() {
             {notice}
           </div>
         ) : null}
-        <TaskBoard tasks={visibleTasks} energy={energy} onDelete={handleDeleteTask} />
+        <TaskBoard tasks={visibleTasks} energy={energy} onDelete={handleDeleteTask} onUpdateStatus={handleUpdateTaskStatus} />
       </section>
     </main>
   );

@@ -37,12 +37,19 @@ export const deleteTask = (id) => {
   });
 };
 
-export const prioritizeTasks = ({ currentEnergy, tasks }) => {
+export const prioritizeTasks = (tasks, currentEnergy) => {
   return requestJson('/prioritize', {
     method: 'POST',
     body: JSON.stringify({
       currentEnergy,
       tasks
     })
+  });
+};
+
+export const updateTask = (id, payload) => {
+  return requestJson(`/tasks/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload)
   });
 };
