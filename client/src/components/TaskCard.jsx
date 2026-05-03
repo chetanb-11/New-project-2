@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Clock, Gauge, Layers, Trash2 } from 'lucide-react';
 import { calculateFlowScore } from '../utils/flow.js';
 import { motion } from 'framer-motion';
@@ -19,21 +19,30 @@ const statusTone = {
 const getTaskId = (task) => task.id ?? task._id;
 
 const formatTime = (seconds) => {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
   const s = (seconds % 60).toString().padStart(2, '0');
+  if (h > 0) {
+    return `${h}:${m}:${s}`;
+  }
   return `${m}:${s}`;
 };
 
 export const TaskCard = ({ task, energy, onDelete, onUpdateStatus, index }) => {
   const [elapsed, setElapsed] = useState(0);
+  const startTimeRef = useRef(null);
 
   useEffect(() => {
     let intervalId;
     if (task.status === 'In-Progress') {
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
       intervalId = setInterval(() => {
-        setElapsed(prev => prev + 1);
+        setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 1000);
     } else {
+      startTimeRef.current = null;
       setElapsed(0);
     }
     return () => clearInterval(intervalId);

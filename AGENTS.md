@@ -75,6 +75,8 @@ Fields:
 - Complete: `CreateTaskForm.jsx` supports creating tasks through the API, with local demo fallback when the API is unavailable.
 - Complete: Task deletion is wired through the API when available.
 - Complete: `client/vite.config.js` enables `@vitejs/plugin-react`; keep this file in place to prevent blank-page runtime crashes from JSX compilation.
+- Complete: Real-time active task tracking implemented in `TaskCard.jsx` using absolute `Date.now()` logic to prevent background browser tab throttling.
+- Complete: Dark Mode toggle implemented via `ThemeToggle.jsx` and Tailwind CSS `dark:` classes.
 - Verify persisted tasks by running the server, running the client, creating a task, refreshing the browser, and confirming it remains in the list.
 
 ## Current Project Structure
@@ -87,6 +89,8 @@ Fields:
 - Task board: `client/src/components/TaskBoard.jsx`.
 - Task creation drawer: `client/src/components/CreateTaskForm.jsx`.
 - Energy slider: `client/src/components/EnergySlider.jsx`.
+- Task card: `client/src/components/TaskCard.jsx`.
+- Theme toggle: `client/src/components/ThemeToggle.jsx`.
 - Client API wrapper: `client/src/api/tasks.js`.
 - Shared client Flow utility: `client/src/utils/flow.js`.
 - Server app setup: `server/src/app.js`.
