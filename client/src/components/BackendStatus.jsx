@@ -1,26 +1,45 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { checkBackendHealth } from '../api/tasks.js';
 
-const POLL_INTERVAL = 30000;
+const ONLINE_INTERVAL = 30000;
+const OFFLINE_INTERVAL = 8000;
+const FETCH_TIMEOUT = 10000;
 
 export function BackendStatus() {
   const [status, setStatus] = useState('checking');
+  const intervalRef = useRef(null);
 
   const ping = useCallback(async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
     try {
-      await checkBackendHealth();
+      await checkBackendHealth(controller.signal);
       setStatus('online');
-    } catch {
-      setStatus('offline');
+    } catch (_err) {
+      setStatus((prev) => (prev === 'checking' ? 'offline' : prev === 'online' ? 'online' : 'offline'));
+    } finally {
+      clearTimeout(timer);
     }
   }, []);
 
   useEffect(() => {
+    const onApiSuccess = () => setStatus('online');
+    window.addEventListener('backend:reachable', onApiSuccess);
+    return () => window.removeEventListener('backend:reachable', onApiSuccess);
+  }, []);
+
+  useEffect(() => {
     ping();
-    const id = setInterval(ping, POLL_INTERVAL);
-    return () => clearInterval(id);
   }, [ping]);
+
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    const delay = status === 'online' ? ONLINE_INTERVAL : OFFLINE_INTERVAL;
+    intervalRef.current = setInterval(ping, delay);
+    return () => clearInterval(intervalRef.current);
+  }, [status, ping]);
 
   const configs = {
     checking: {

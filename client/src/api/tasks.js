@@ -2,8 +2,8 @@ import { getToken } from './auth.js';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
 
-export const checkBackendHealth = async () => {
-  const res = await fetch(`${apiBaseUrl}/health`, { method: 'GET' });
+export const checkBackendHealth = async (signal) => {
+  const res = await fetch(`${apiBaseUrl}/health`, { method: 'GET', signal });
   if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
   return res.json();
 };
@@ -27,6 +27,8 @@ const requestJson = async (path, options = {}) => {
   if (!response.ok) {
     throw new Error(`Request failed with status ${response.status}`);
   }
+
+  window.dispatchEvent(new Event('backend:reachable'));
 
   if (response.status === 204) {
     return null;

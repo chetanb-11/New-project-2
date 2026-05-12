@@ -28,6 +28,7 @@ export const registerUser = async (userData) => {
 
   const data = await response.json();
   setToken(data.token);
+  window.dispatchEvent(new Event('backend:reachable'));
   return data.user;
 };
 
@@ -47,5 +48,6 @@ export const loginUser = async (credentials) => {
 
   const data = await response.json();
   setToken(data.token);
+  window.dispatchEvent(new Event('backend:reachable'));
   return data.user;
 };
