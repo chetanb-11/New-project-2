@@ -79,6 +79,7 @@ Fields:
 - Complete: Real-time active task tracking implemented in `TaskCard.jsx` using absolute `Date.now()` logic to prevent background browser tab throttling.
 - Complete: Dark Mode toggle implemented via `ThemeToggle.jsx` and Tailwind CSS `dark:` classes.
 - Complete: JWT authentication and protected routes with a "Guest Mode" fallback logic using `react-router-dom`. Unauthenticated users can use the app locally without database persistence.
+- Complete: Backend status indicator implemented in `BackendStatus.jsx`. Pings `GET /health` every 30 seconds and shows a tick when connected or an X when unreachable. Clicking the pill manually re-checks. Designed for Render deployments where the backend may cold-start.
 - Verify persisted tasks by running the server, running the client, creating a task, refreshing the browser, and confirming it remains in the list.
 
 ## Current Project Structure
@@ -90,16 +91,21 @@ Fields:
 - Client app shell: `client/src/App.jsx`.
 - Task board: `client/src/components/TaskBoard.jsx`.
 - Task creation drawer: `client/src/components/CreateTaskForm.jsx`.
+- Auth form: `client/src/components/AuthForm.jsx`.
 - Energy slider: `client/src/components/EnergySlider.jsx`.
 - Task card: `client/src/components/TaskCard.jsx`.
 - Theme toggle: `client/src/components/ThemeToggle.jsx`.
+- Backend status indicator: `client/src/components/BackendStatus.jsx`.
 - Client API wrapper: `client/src/api/tasks.js`.
+- Client Auth wrapper: `client/src/api/auth.js`.
 - Shared client Flow utility: `client/src/utils/flow.js`.
 - Server app setup: `server/src/app.js`.
 - Server entry point: `server/src/index.js`.
 - Task model: `server/src/models/task.model.js`.
+- User model: `server/src/models/user.model.js`.
 - Task schemas: `server/src/schemas/task.schema.js`.
 - Task routes: `server/src/routes/task.routes.js`.
+- Auth routes: `server/src/routes/auth.routes.js`.
 - Prioritization route: `server/src/routes/prioritize.routes.js`.
 - Gemini integration: `server/src/services/gemini.service.js`.
 - Priority response normalization: `server/src/services/priority-response.service.js`.

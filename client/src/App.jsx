@@ -5,6 +5,7 @@ import { EnergySlider } from './components/EnergySlider.jsx';
 import { TaskBoard } from './components/TaskBoard.jsx';
 import { CreateTaskForm } from './components/CreateTaskForm.jsx';
 import { ThemeToggle } from './components/ThemeToggle.jsx';
+import { BackendStatus } from './components/BackendStatus.jsx';
 import { AuthForm } from './components/AuthForm.jsx';
 import { fetchTasks, createTask, deleteTask, prioritizeTasks, updateTask } from './api/tasks.js';
 import { sortTasksByFlow } from './utils/flow.js';
@@ -53,8 +54,10 @@ function Dashboard({ isAuthenticated, onLogout }) {
       if (isAuthenticated) {
         setLoading(true);
         const res = await prioritizeTasks(tasks, energy);
-        setTasks(res.orderedTasks);
-        setNotice(res.geminiFailed ? 'Gemini prioritization was unavailable, so the local Flow score order was used.' : null);
+        if (res?.orderedTasks) {
+          setTasks(res.orderedTasks);
+        }
+        setNotice(res?.geminiFailed ? 'Gemini prioritization was unavailable, so the local Flow score order was used.' : null);
       } else {
         // Local only prioritization
         setTasks(sortTasksByFlow(tasks, energy));
@@ -145,6 +148,7 @@ function Dashboard({ isAuthenticated, onLogout }) {
             <div>
               <h1 className="text-2xl font-semibold tracking-normal text-stone-950 dark:text-white transition-colors">Focus Flow</h1>
               <p className="text-sm text-stone-600 dark:text-stone-400 transition-colors">Prioritized work for the energy you actually have.</p>
+              <BackendStatus />
             </div>
           </div>
           <div className="flex items-center gap-4">

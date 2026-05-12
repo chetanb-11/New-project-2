@@ -42,16 +42,18 @@ export const prioritizeWithGemini = async ({ tasks, currentEnergy }) => {
     const text = result.response.text();
     const parsed = parseGeminiPriorityResponse(text, tasks);
 
+    const orderedTasks = parsed.sortedIds.map((id) => tasks.find((t) => t.id === id)).filter(Boolean);
+
     return {
-      sortedIds: parsed.sortedIds,
+      orderedTasks,
       reasoning: parsed.reasoning,
-      source: 'gemini'
+      geminiFailed: false
     };
   } catch (error) {
     return {
-      sortedIds: baselineOrder,
+      orderedTasks: baselineTasks,
       reasoning: 'Gemini prioritization was unavailable, so the local Flow score order was used.',
-      source: 'flow',
+      geminiFailed: true,
       error: error.message
     };
   }
